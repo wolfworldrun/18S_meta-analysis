@@ -1,0 +1,128 @@
+proj_name:  # replace
+SRAid:  # replace
+raw_data:  # path to raw data
+output:   # path to output
+visualization:   # path to visualization output
+taxonomy_fasta:   # path to reference taxonomy fasta file
+trained_ref_database:   # path to trained reference database .qza file
+
+
+
+# primer removal - uncomment relevant parameters for the study
+# below is for stoeck et al 2010 V4
+#primerF: CCAGCASCYGCGGTAATTCC
+#primerR: ACTTTCGTTCTTGATYRA # reverse primer sequence
+#adapterF: TYRATCAAGAACGAAAGT # reverse complement of reverse primer, may be present on 3' end of forward read
+#adapterR: GGAATTACCGCRGSTGCTGG # reverse complement forward primer, may be present on 3' end of reverse read
+# Brisbin 2018 R V4
+#primerR: ACTTTCGTTCTTGATYR
+#adapterF: YRATCAAGAACGAAAGT
+# 574F/1132R
+#primerF: CGGTAAYTCCAGCTCYV
+#primerR: CCGTCAATTHCTTYAART
+#adapterF: AYTTRAAGDAATTGACGG
+#adapterR: BRGAGCTGGARTTACCG
+# Hugerth et al 574F/897R
+#primerF: CGGTAAYTCCAGCTCYV
+#primerR: TCYDAGAATTYCACCTCT
+#adapterF: AGAGGTGRAATTCTHRGA
+#adapterR: BRGAGCTGGARTTACCG
+# 574F/1132R
+#primerF: CGGTAAYTCCAGCTCYV
+#primerR: CCGTCAATTHCTTYAART
+#adapterF: AGAGGTGRAATTCTHRGA
+#adapterR: BRGAGCTGGARTTACCG
+# E572F/897R
+#primerF: CYGCGGTAATTCCAGCTC
+#primerR: TCYDAGAATTYCACCTCT
+#adapterF: AGAGGTGRAATTCTHRGA
+#adapterR: GAGCTGGAATTACCGCRG
+# E572F/E1009R
+#primerF: CYGCGGTAATTCCAGCTC
+#primerR: AYGGTATCTRATCRTCTTYG
+#adapterF: CRAAGAYGATYAGATACCRT
+#adapterR: GAGCTGGAATTACCGCRG
+# Elwood et al 1985 528F/706R
+#primerF: GCGGTAATTCCAGCTCCAA
+#primerR: AATCCRAGAATTTCACCTCT
+#adapterF: AGAGGTGAAATTCTYGGATT
+#adapterR: TTGGAGCTGGAATTACCGC
+# V4 528iF/964iR Fadeev et al 2018
+#primerF: GCGGTAATTCCAGCTCCAA
+#primerR: ACTTTCGTTCTTGATYRR
+#adapterF:
+#adapterR:  
+# Amaral-Zettler et al 1380F/1510R
+#primerF: CCCTGCCHTTTGTACACAC
+#primerR: CCTTCYGCAGGTTCACCTAC
+#adapterF: GTAGGTGAACCTGCRGAAGG
+#adapterR: GTGTGTACAAADGGCAGGG
+# Amaral-Zettler et al & TARA 1389F/1510R
+#primerF: TTGTACACACCGCCC
+#primerR: CCTTCYGCAGGTTCACCTAC
+#adapterF: GTAGGTGAACCTGCRGAAGG
+#adapterR: GGGCGGTGTGTACAA
+# 1391F/1510R
+#primerF: GTACACACCGCCCGTC
+#primerR: CCTTCYGCAGGTTCACCTAC
+#adapterF: GTAGGTGAACCTGCRGAAGG
+#adapterR: GACGGGCGGTGTGTAC
+# 1391F/EukB / EMP
+#primerF: GTACACACCGCCCGTC
+#primerR: TGATCCTTCTGCAGGTTCACCTAC
+#adapterF: GTAGGTGAACCTGCAGAAGGATCA
+#adapterR: GACGGGCGGTGTGTAC
+# All18SF/All18SR
+#primerF: TGCATGGCCGTTCTTAGT
+#primerR: CTAAGGGCATCACAGACC
+#adapterF: GGTCTGTGATGCCCTTAG
+#adapterR: ACTAAGAACGGCCATGCA
+#SAR primer set
+#primerF: AYTCAGGGAGGTAGTGACAAG
+#primerR: RACTACGAGCTTTTTAACTGC
+#adapterF: GCAGTTAAAAAGCTCGTAGTY
+#adapterR: CTTGTCACTACCTCCCTGART
+
+
+p_min_length: 10
+
+
+# merging paired end reads
+# uncomment relevant parameters for the study
+# for 2x250 bp stoeck
+#max_diffs_merge: 40
+#minovlen_merge: 40
+# for 1389R/1510R, 1310/1510R, Elwood, short V4, stoeck et al 2x300
+#max_diffs_merge: 40
+#minovlen_merge: 50
+# sprong:
+#max_diffs_merge: 40
+#minovlen_merge: 40
+#for kataoka and kondo - overlap length of 42 - keep defaults 
+#max_diffs_merge: 10
+#minovlen_merge: 10
+#for pan - 80 bp reads - lower maxdiff - 30 bp overlaps
+#max_diffs_merge: 6
+#minovlen_merge: 10
+# for SAR primer set 
+
+# quality filtering after merging - may not be necessary
+filter_minquality: 20
+
+
+# deblur
+# trim to same length for all V4 and all V9 EXCEPT Elwood V4 primers
+# V4: 325 bp
+#p_trim_length: 325
+# Elwood: trim to length of amplicon -- 180 
+# V4 Elwood and Deng:
+#p_trim_length: 150
+# for V9 and SAR:
+#p_trim_length: 119
+
+
+
+
+
+
+
