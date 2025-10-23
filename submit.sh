@@ -1,4 +1,4 @@
-# this instructs snakemake to submit each rule as a separate job with specified default and job specific resources (which are defined in the cluster.yaml file) 
+# this instructs snakemake to submit each rule as a separate job to slurm with specified default and job specific resources (which are defined in the cluster.yaml file) 
 
 snakemake   \
         -s ../Snakefile --jobs 100  --use-conda --conda-frontend conda  --cluster \
