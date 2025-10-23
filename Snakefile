@@ -45,9 +45,10 @@ rule all:
 rule download_runinfo:
     output:
         runinfo = INPUTDIR + "runinfo.csv"
+    conda:
+        "envs/parallelfastqdump.yaml"
     shell:
         """
-        module load entrezdirect/10.7.20190114
         esearch -db sra -query {config[SRAid]} | efetch -format runinfo > {output.runinfo}
         """
         
