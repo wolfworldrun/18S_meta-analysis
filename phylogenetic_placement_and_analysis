@@ -1,0 +1,228 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~phylo-placement.sh
+BASEDIR=""
+NUM_TASKS=
+SCRATCH_DIR=""
+
+
+# alignments and trees for placement
+TREE = "clade_rooted.tree" # path to tree
+MSA_FASTA = "aln.fasta" # path to fasta alignment
+MSA_PHYLIP = "aln.phy" # path to phylip alignment
+
+# query seqs
+ASVs = "query.fasta" # path to query sequences
+
+# clade files
+CLADES = "tax.tsv" # path to taxonomy file for tree
+OUTGROUP= "outgroup.txt" # path to file listing outgroup sequence names 
+
+cp $TREE $SCRATCH_DIR
+cp $MSA_PHYLIP $SCRATCH_DIR
+cp $ASVs $SCRATCH_DIR
+cp $MSA_FASTA $SCRATCH_DIR
+cp $CLADES $SCRATCH_DIR
+cp $OUTGROUP $SCRATCH_DIR
+cd $SCRATCH_DIR
+
+# this tool alignes the ASVs to the RA
+papara \
+    -t clade_rooted.tree \
+    -s aln.phy \
+    -q query.fasta \
+    -j $NUM_TASKS \
+    -r
+
+epa-ng \
+    --split aln.fasta \
+    papara_alignment.default
+
+# output:
+# query.fasta
+# reference.fasta
+
+raxml-ng \
+    --evaluate \
+    --msa reference.fasta \
+    --tree clade.tree \
+    --model GTR+G \
+    --threads $NUM_TASKS
+    
+# output:
+# reference.fasta.raxml.bestModel
+# reference.fasta.raxml.bestTree
+# reference.fasta.raxml.log
+# reference.fasta.raxml.rba
+# reference.fasta.raxml.startTree
+
+# Top 100 placements (can change using --filter-max)
+# 
+epa-ng \
+	--filter-acc-lwr 0.99 \
+    --filter-max 100 \
+    -t clade.tree \
+    -s reference.fasta \
+    -q query.fasta \
+    --model reference.fasta.raxml.bestModel
+    
+
+## gappa analysis
+# heat tree
+# visualizes the placements for each query sequence across the reference tree
+gappa \
+    examine heat-tree \
+    --jplace-path epa_result.jplace \
+    --point-mass \
+    --write-svg-tree \
+    --write-newick-tree \
+    --write-nexus-tree \
+    --min-value 1 \
+    --under-color '#d3d3d3' \
+    --file-prefix point-mass- \
+    --color-list Inferno \
+    --svg-tree-shape rectangular
+gappa \
+    examine heat-tree \
+    --jplace-path epa_result.jplace \
+    --mass-norm absolute \
+    --write-svg-tree \
+    --write-newick-tree \
+    --write-nexus-tree \
+    --min-value 1 \
+    --under-color '#d3d3d3' \
+    --file-prefix absolute- \
+    --color-list Inferno \
+    --svg-tree-shape rectangular
+# output:    
+# tree.svg
+# tree.nexus
+# tree.newick
+
+
+
+gappa \
+    examine assign \
+    --jplace-path epa_result.jplace \
+    --taxon-file tax.tsv \
+    --best-hit \
+    --per-query-results \
+    --file-prefix best-hit-
+
+
+    
+gappa \
+    examine assign \
+    --jplace-path epa_result.jplace \
+    --taxon-file tax.txt \
+    --per-query-results \
+    --file-prefix all-hits-
+
+
+
+# output: 
+# labelled_tree.newick
+# profile.tsv
+# sper_query.tsv
+
+# LWR histogram
+gappa \
+    examine lwr-histogram \
+    --jplace-path epa_result.jplace
+
+gappa \
+    examine lwr-list \
+    --jplace-path epa_result.jplace
+
+# output:
+# lwr_histogram.csv
+# lwr_list.csv
+
+
+
+# EDPL histogram
+gappa \
+    examine edpl \
+	--jplace-path epa_result.jplace
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Some analyses with gappa to get Edge PCA plot:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~gappa-split.sh
+
+SEQ= # path to query seqs
+OTU= # path to ASV count table corresponding to query seqs
+
+# Get a list of poorly placed queries; i.e. with high EDPL (i.e. above 0.05). This list will be used later to filter out these poorly placed queries.
+
+cat ../results/edpl_list.csv | tr ',' '\t' | grep -v "EDPL" | LC_ALL=C awk '$4 > 0.05' | cut -f2 > high_edpl.list
+
+# filter based on edpl
+# filter seqs
+
+cat $SEQ | seqkit grep -f high_edpl.list -v > seqs_filtered.fasta 
+
+# filter jplace file
+
+gappa edit filter \
+        --jplace-path epa_result.jplace \
+        --remove-names high_edpl.list \
+        --out-dir .
+
+# split jplace per sample
+
+gappa edit split \
+  --jplace-path filter.jplace \
+  --otu-table-file $OTU \
+  --out-dir ./split-files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~filter.py
+import os
+import json
+import shutil
+
+
+# only copy jplace files for samples which contain some threshold number of seqs to filtered_by_number_of_seqs
+# File paths
+source_dir = "./split-files/"  # Replace with your directory containing .jplace files
+destination_dir = "./split-files/filtered_by_number_of_seqs"
+thresh = # pick threshold
+
+# Create destination directory if it doesn't exist
+os.makedirs(destination_dir, exist_ok=True)
+
+# Iterate through all .jplace files in the source directory
+for filename in os.listdir(source_dir):
+    if filename.endswith(".jplace"):
+        file_path = os.path.join(source_dir, filename)
+        
+        try:
+            # Open and parse the .jplace file
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+            
+            # Ensure "placements" exists and is a list
+            if "placements" in data and isinstance(data["placements"], list):
+                # Extract sequence names safely
+                query_names = [placement.get("nm", []) for placement in data["placements"]]
+                
+                # Flatten the list and filter out empty entries
+                query_names = [name for sublist in query_names for name in sublist if name]
+
+                # Check threshold condition
+                if len(query_names) >= thresh:
+                    shutil.copy(file_path, destination_dir)
+                    print(f"Copied: {filename}")
+
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"Skipping {filename}: Invalid JSON format or missing expected fields. Error: {e}")
+
+print(f"Filtered files are copied to {destination_dir}.")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~gappa-edge.sh
+gappa analyze edgepca \
+  --jplace-path ./split-files/filtered_by_number_of_seqs \
+  --out-dir ./edgepca \
+  --write-svg-tree \
+  --write-nexus-tree \
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# can also compute krd and do squash clustering on split .jplace files, etc.
