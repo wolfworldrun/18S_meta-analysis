@@ -1,0 +1,51 @@
+# define slurm parameters for job submission
+# any jobs without defined parameters will have those defined in default
+
+__default__:
+    partition: 
+    time: 
+    mem: # in MB
+    ntasks:
+    nodes
+    
+reorient:
+    partition:
+    time:
+    mem: # in MB
+    ntasks:
+    nodes:
+
+fasterq_dump:
+    partition:
+    time:
+    mem: # in MB
+    ntasks:
+    nodes:
+    
+merge:
+    partition:
+    time:
+    mem: # in MB
+    ntasks:
+    nodes:
+    
+demux_summarize:
+    partition:
+    time:
+    mem: # in MB
+    ntasks:
+    nodes:
+
+deblur:
+    partition:
+    time:
+    mem: # in MB
+    ntasks:
+    nodes:
+
+assign_tax:
+    partition:
+    time:
+    mem: # in MB
+    ntasks:
+    nodes:
