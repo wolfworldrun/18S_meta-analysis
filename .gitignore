@@ -4,4 +4,5 @@ __pycache__/
 .DS_Store
 *.log
 results/
-reference/
+reference/reference_database.fasta
+reference/classifier.qza
